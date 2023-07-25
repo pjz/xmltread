@@ -1,0 +1,38 @@
+[project]
+name = "xmltread"
+version = "0.1"
+requires-python = ">=3.7"
+description = "Make XML documents more easily accessible"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Aaron Swartz", email = "me@aaronsw.com"},
+    {name = "Paul Jimenez", email = "pj@place.org"}
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Text Processing :: Markup :: XML",
+]
+dependencies = [ ]
+
+
+[project.urls]
+Homepage = "http://github.com/pjz/xmltread"
+Documentation = "http://pjz.github.io/xmltread"
+Repository = "http://github.com/pjz/xmltread.git"
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-mypy",
+    "build",
+    "twine",
+]
