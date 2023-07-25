@@ -22,3 +22,7 @@ jobs:
       - name: Install dependencies & run tests
         run: |
           make test
+
+      - name: run mypy
+        run: |
+          make mypy

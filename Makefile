@@ -25,7 +25,7 @@ DEV_ENV=$(VIRTUAL_ENV)/bin/pytest
 PIP_VENDORED_FLAGS=$(if $(PIP_VENDORED_DIR),-f $(PIP_VENDORED_DIR),)
 
 $(DEV_REQS): pyproject.toml
-	pip-compile -q --resolver=backtracking --extra=dev,all --output-file=$@ $<
+	pip-compile -q --resolver=backtracking --extra=dev --output-file=$@ $<
 
 $(DEV_ENV): $(DEV_REQS)
 	@if [ -z "$$VIRTUAL_ENV" ] ; then \
@@ -34,7 +34,7 @@ $(DEV_ENV): $(DEV_REQS)
 	fi
 	pip install pip-tools
 	pip-sync $(DEV_REQS)
-	pip install -e .[all]
+	pip install -e .[dev]
 	touch $(DEV_REQS)
 
 .PHONY: dev
