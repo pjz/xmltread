@@ -1,161 +1,209 @@
-"""xmltramp: Make XML documents easily accessible."""
+"""xmltramp: Make XML documents easily accessible.
 
+Originally:
 __version__ = "2.18"
 __author__ = "Aaron Swartz"
 __credits__ = "Many thanks to pjz, bitsko, and DanC."
 __copyright__ = "(C) 2003-2006 Aaron Swartz. GNU GPL 2."
 
-def isstr(f): return isinstance(f, type('')) or isinstance(f, type(u''))
-def islst(f): return isinstance(f, type(())) or isinstance(f, type([]))
+"""
 
-empty = {'http://www.w3.org/1999/xhtml': ['img', 'br', 'hr', 'meta', 'link', 'base', 'param', 'input', 'col', 'area']}
+
+def isstr(f):
+    return isinstance(f, type(""))
+
+
+def islst(f):
+    return isinstance(f, type(())) or isinstance(f, type([]))
+
+
+def isint(f):
+    return isinstance(f, type(0))
+
+
+empty = {
+    "http://www.w3.org/1999/xhtml": [
+        "img",
+        "br",
+        "hr",
+        "meta",
+        "link",
+        "base",
+        "param",
+        "input",
+        "col",
+        "area",
+    ]
+}
+
 
 def quote(x, elt=True):
-    if elt and '<' in x and len(x) > 24 and x.find(']]>') == -1: return "<![CDATA["+x+"]]>"
-    else: x = x.replace('&', '&amp;').replace('<', '&lt;').replace(']]>', ']]&gt;')
-    if not elt: x = x.replace('"', '&quot;')
+    if elt and "<" in x and len(x) > 24 and x.find("]]>") == -1:
+        return "<![CDATA[" + x + "]]>"
+    else:
+        x = x.replace("&", "&amp;").replace("<", "&lt;").replace("]]>", "]]&gt;")
+    if not elt:
+        x = x.replace('"', "&quot;")
     return x
+
 
 class Element:
     def __init__(self, name, attrs=None, children=None, prefixes=None):
-        if islst(name) and name[0] == None: name = name[1]
+        if islst(name) and name[0] is None:
+            name = name[1]
         if attrs:
             na = {}
-            for k in attrs.keys():
-                if islst(k) and k[0] == None: na[k[1]] = attrs[k]
-                else: na[k] = attrs[k]
+            for k in attrs:
+                if islst(k) and k[0] is None:
+                    na[k[1]] = attrs[k]
+                else:
+                    na[k] = attrs[k]
             attrs = na
-        
+
         self._name = name
         self._attrs = attrs or {}
         self._dir = children or []
-        
+
         prefixes = prefixes or {}
         self._prefixes = dict(zip(prefixes.values(), prefixes.keys()))
-        
-        if prefixes: self._dNS = prefixes.get(None, None)
-        else: self._dNS = None
-    
-    def __repr__(self, recursive=0, multiline=0, inprefixes=None):
-        def qname(name, inprefixes): 
-            if islst(name):
-                if inprefixes[name[0]] is not None:
-                    return inprefixes[name[0]]+':'+name[1]
-                else:
-                    return name[1]
-            else:
-                return name
-        
-        def arep(a, inprefixes, addns=1):
-            out = ''
 
-            for p in self._prefixes.keys():
-                if not p in inprefixes.keys():
-                    if addns: out += ' xmlns'
-                    if addns and self._prefixes[p]: out += ':'+self._prefixes[p]
-                    if addns: out += '="'+quote(p, False)+'"'
+        self._dNS = prefixes.get(None, None) if prefixes else None
+
+    def __repr__(self, recursive=0, multiline=0, inprefixes=None):
+        def qname(name, inprefixes):
+            if not islst(name):
+                return name
+            if inprefixes[name[0]] is not None:
+                return inprefixes[name[0]] + ":" + name[1]
+            else:
+                return name[1]
+
+        def arep(a, inprefixes, addns=1):
+            out = ""
+
+            for p in self._prefixes:
+                if p not in inprefixes:
+                    if addns:
+                        out += " xmlns"
+                        if self._prefixes[p]:
+                            out += ":" + self._prefixes[p]
+                        out += '="' + quote(p, False) + '"'
                     inprefixes[p] = self._prefixes[p]
-            
-            for k in a.keys():
-                out += ' ' + qname(k, inprefixes)+ '="' + quote(a[k], False) + '"'
-            
+
+            for k in a:
+                out += " " + qname(k, inprefixes) + '="' + quote(a[k], False) + '"'
+
             return out
-        
-        inprefixes = inprefixes or {u'http://www.w3.org/XML/1998/namespace':'xml'}
-        
+
+        inprefixes = inprefixes or {"http://www.w3.org/XML/1998/namespace": "xml"}
+
         # need to call first to set inprefixes:
-        attributes = arep(self._attrs, inprefixes, recursive) 
-        out = '<' + qname(self._name, inprefixes)  + attributes 
-        
-        if not self._dir and (self._name[0] in empty.keys() 
-          and self._name[1] in empty[self._name[0]]):
-            out += ' />'
+        attributes = arep(self._attrs, inprefixes, recursive)
+        out = "<" + qname(self._name, inprefixes) + attributes
+
+        if not self._dir and (
+            self._name[0] in empty and self._name[1] in empty[self._name[0]]
+        ):
+            out += " />"
             return out
-        
-        out += '>'
+
+        out += ">"
 
         if recursive:
             content = 0
-            for x in self._dir: 
-                if isinstance(x, Element): content = 1
-                
-            pad = '\n' + ('\t' * recursive)
             for x in self._dir:
-                if multiline and content: out +=  pad 
-                if isstr(x): out += quote(x)
+                if isinstance(x, Element):
+                    content = 1
+
+            pad = "\n" + ("\t" * recursive)
+            for x in self._dir:
+                if multiline and content:
+                    out += pad
+                if isstr(x):
+                    out += quote(x)
                 elif isinstance(x, Element):
-                    out += x.__repr__(recursive+1, multiline, inprefixes.copy())
+                    out += x.__repr__(recursive + 1, multiline, inprefixes.copy())
                 else:
-                    raise TypeError("I wasn't expecting "+repr(x)+".")
-            if multiline and content: out += '\n' + ('\t' * (recursive-1))
+                    raise TypeError(f"I wasn't expecting {x!r}.")
+            if multiline and content:
+                out += "\n" + ("\t" * (recursive - 1))
         else:
-            if self._dir: out += '...'
-        
-        out += '</'+qname(self._name, inprefixes)+'>'
-            
+            if self._dir:
+                out += "..."
+
+        out += "</" + qname(self._name, inprefixes) + ">"
+
         return out
-    
-    def __unicode__(self):
-        text = ''
-        for x in self._dir:
-            text += unicode(x)
-        return ' '.join(text.split())
-        
+
     def __str__(self):
-        return self.__unicode__().encode('utf-8')
-    
+        text = "".join(str(x) for x in self._dir)
+        return " ".join(text.split())
+
     def __getattr__(self, n):
-        if n[0] == '_': raise AttributeError("Use foo['"+n+"'] to access the child element.")
-        if self._dNS: n = (self._dNS, n)
+        if n[0] == "_":
+            raise AttributeError(f"Use foo['{n}'] to access the child element.")
+        if self._dNS:
+            n = (self._dNS, n)
         for x in self._dir:
-            if isinstance(x, Element) and x._name == n: return x
-        raise AttributeError('No child element named %s' % repr(n))
-        
+            if isinstance(x, Element) and x._name == n:
+                return x
+        raise AttributeError(f"No child element named {n!r}")
+
     def __hasattr__(self, n):
         for x in self._dir:
-            if isinstance(x, Element) and x._name == n: return True
+            if isinstance(x, Element) and x._name == n:
+                return True
         return False
-        
+
     def __setattr__(self, n, v):
-        if n[0] == '_': self.__dict__[n] = v
-        else: self[n] = v
- 
+        if n[0] == "_":
+            self.__dict__[n] = v
+        else:
+            self[n] = v
 
     def __getitem__(self, n):
-        if isinstance(n, type(0)): # d[1] == d._dir[1]
+        if isint(n):  # d[1] == d._dir[1]
             return self._dir[n]
-        elif isinstance(n, slice(0).__class__):
+        elif isinstance(n, slice):
             # numerical slices
-            if isinstance(n.start, type(0)): return self._dir[n.start:n.stop]
-            
+            if isint(n.start) or n.start is n.stop is None:
+                return self._dir[n.start : n.stop]
+
             # d['foo':] == all <foo>s
             n = n.start
-            if self._dNS and not islst(n): n = (self._dNS, n)
+            if self._dNS and not islst(n):
+                n = (self._dNS, n)
             out = []
             for x in self._dir:
-                if isinstance(x, Element) and x._name == n: out.append(x) 
+                if isinstance(x, Element) and x._name == n:
+                    out.append(x)
             return out
-        else: # d['foo'] == first <foo>
-            if self._dNS and not islst(n): n = (self._dNS, n)
+        else:  # d['foo'] == first <foo>
+            if self._dNS and not islst(n):
+                n = (self._dNS, n)
             for x in self._dir:
-                if isinstance(x, Element) and x._name == n: return x
+                if isinstance(x, Element) and x._name == n:
+                    return x
             raise KeyError(n)
-    
+
     def __setitem__(self, n, v):
-        if isinstance(n, type(0)): # d[1]
+        if isint(n):  # d[1]
             self._dir[n] = v
-        elif isinstance(n, slice(0).__class__):
+        elif isinstance(n, slice):
             # d['foo':] adds a new foo
             n = n.start
-            if self._dNS and not islst(n): n = (self._dNS, n)
+            if self._dNS and not islst(n):
+                n = (self._dNS, n)
 
             nv = Element(n)
             self._dir.append(nv)
-            
-        else: # d["foo"] replaces first <foo> and dels rest
-            if self._dNS and not islst(n): n = (self._dNS, n)
 
-            nv = Element(n); nv._dir.append(v)
+        else:  # d["foo"] replaces first <foo> and dels rest
+            if self._dNS and not islst(n):
+                n = (self._dNS, n)
+
+            nv = Element(n)
+            nv._dir.append(v)
             replaced = False
 
             todel = []
@@ -166,96 +214,66 @@ class Element:
                     else:
                         self[i] = nv
                         replaced = True
-            if not replaced: self._dir.append(nv)
-            for i in todel: del self[i]
+            if not replaced:
+                self._dir.append(nv)
+            for i in todel:
+                del self[i]
 
     def __delitem__(self, n):
-        if isinstance(n, type(0)): del self._dir[n]
-        elif isinstance(n, slice(0).__class__):
+        if isint(n):
+            del self._dir[n]
+        elif isinstance(n, slice):
             # delete all <foo>s
             n = n.start
-            if self._dNS and not islst(n): n = (self._dNS, n)
-            
+            if self._dNS and not islst(n):
+                n = (self._dNS, n)
+
             for i in range(len(self)):
-                if self[i]._name == n: del self[i]
+                if self[i]._name == n:
+                    del self[i]
         else:
             # delete first foo
             for i in range(len(self)):
-                if self[i]._name == n: del self[i]
+                if self[i]._name == n:
+                    del self[i]
                 break
-    
-    def __call__(self, *_pos, **_set): 
+
+    def __call__(self, *_pos, **_set):
         if _set:
-            for k in _set.keys(): self._attrs[k] = _set[k]
+            for k in _set.keys():
+                self._attrs[k] = _set[k]
         if len(_pos) > 1:
             for i in range(0, len(_pos), 2):
-                self._attrs[_pos[i]] = _pos[i+1]
+                self._attrs[_pos[i]] = _pos[i + 1]
         if len(_pos) == 1:
             return self._attrs[_pos[0]]
         if len(_pos) == 0:
             return self._attrs
 
-    def __len__(self): return len(self._dir)
+    def __len__(self):
+        return len(self._dir)
+
 
 class Namespace:
-    def __init__(self, uri): self.__uri = uri
-    def __getattr__(self, n): return (self.__uri, n)
-    def __getitem__(self, n): return (self.__uri, n)
+    def __init__(self, uri):
+        self.__uri = uri
 
-from xml.sax.handler import EntityResolver, DTDHandler, ContentHandler, ErrorHandler
+    def __getattr__(self, n):
+        return (self.__uri, n)
 
-class Seeder(EntityResolver, DTDHandler, ContentHandler, ErrorHandler):
-    def __init__(self):
-        self.stack = []
-        self.ch = ''
-        self.prefixes = {}
-        ContentHandler.__init__(self)
-        
-    def startPrefixMapping(self, prefix, uri):
-        if not self.prefixes.has_key(prefix): self.prefixes[prefix] = []
-        self.prefixes[prefix].append(uri)
-    def endPrefixMapping(self, prefix):
-        self.prefixes[prefix].pop()
-    
-    def startElementNS(self, name, qname, attrs):
-        ch = self.ch; self.ch = ''    
-        if ch and not ch.isspace(): self.stack[-1]._dir.append(ch)
+    def __getitem__(self, n):
+        return (self.__uri, n)
 
-        attrs = dict(attrs)
-        newprefixes = {}
-        for k in self.prefixes.keys(): newprefixes[k] = self.prefixes[k][-1]
-        
-        self.stack.append(Element(name, attrs, prefixes=newprefixes.copy()))
-    
-    def characters(self, ch):
-        self.ch += ch
-    
-    def endElementNS(self, name, qname):
-        ch = self.ch; self.ch = ''
-        if ch and not ch.isspace(): self.stack[-1]._dir.append(ch)
-    
-        element = self.stack.pop()
-        if self.stack:
-            self.stack[-1]._dir.append(element)
-        else:
-            self.result = element
-
-from xml.sax import make_parser
-from xml.sax.handler import feature_namespaces
-
-def seed(fileobj):
-    seeder = Seeder()
-    parser = make_parser()
-    parser.setFeature(feature_namespaces, 1)
-    parser.setContentHandler(seeder)
-    parser.parse(fileobj)
-    return seeder.result
 
 def parse(text):
-    from StringIO import StringIO
+    from io import StringIO
+    from .seeder import seed
+
     return seed(StringIO(text))
 
-def load(url): 
-    import urllib
-    return seed(urllib.urlopen(url))
 
+def load(url):
+    from urllib.request import urlopen
+    from .seeder import seed
+
+    return seed(urlopen(url))

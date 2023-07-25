@@ -1,11 +1,12 @@
-
 from xmltread import parse, Element, Namespace, quote
 
 
 def test_block_from_original():
-    assert parse("<doc>a<baz>f<b>o</b>ob<b>a</b>r</baz>a</doc>").__repr__(
-        1, 1
-    ) == "<doc>\n\ta<baz>\n\t\tf<b>o</b>ob<b>a</b>r\n\t</baz>a\n</doc>"
+    p = parse("<doc>a<baz>f<b>o</b>ob<b>a</b>r</baz>a</doc>").__repr__(1, 1)
+    assert (
+        p == "<doc>\n\ta\n\t<baz>\n\t\tf\n\t\t<b>o</b>"
+        "\n\t\tob\n\t\t<b>a</b>\n\t\tr\n\t</baz>\n\ta\n</doc>"
+    )
 
     assert str(parse("<doc />")) == ""
     assert str(parse("<doc>I <b>love</b> you.</doc>")) == "I love you."
@@ -31,7 +32,7 @@ def test_block_from_original():
     except AttributeError:
         pass
 
-    assert hasattr(d, "bar") == True
+    assert hasattr(d, "bar")
 
     assert d("foo") == "bar"
     d(silly="yes")
@@ -57,7 +58,7 @@ def test_block_from_original():
     dc = Namespace("http://purl.org/dc/elements/1.1/")
     d = parse(
         """<doc version="2.7182818284590451"
-      xmlns="http://example.org/bar" 
+      xmlns="http://example.org/bar"
       xmlns:dc="http://purl.org/dc/elements/1.1/"
       xmlns:bbc="http://example.org/bbc">
         <author>John Polk and John Palfrey</author>
@@ -69,12 +70,22 @@ def test_block_from_original():
 
     assert repr(d) == '<doc version="2.7182818284590451">...</doc>'
     assert (
-        d.__repr__(1)
-        == '<doc xmlns:bbc="http://example.org/bbc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://example.org/bar" version="2.7182818284590451"><author>John Polk and John Palfrey</author><dc:creator>John Polk</dc:creator><dc:creator>John Palfrey</dc:creator><bbc:show bbc:station="4">Buffy</bbc:show></doc>'
+        d.__repr__(1) == "<doc "
+        'xmlns="http://example.org/bar" '
+        'xmlns:dc="http://purl.org/dc/elements/1.1/" '
+        'xmlns:bbc="http://example.org/bbc" '
+        'version="2.7182818284590451">'
+        "<author>John Polk and John Palfrey</author><dc:creator>John Polk</dc:creator>"
+        '<dc:creator>John Palfrey</dc:creator><bbc:show bbc:station="4">Buffy</bbc:show></doc>'
     )
     assert (
-        d.__repr__(1, 1)
-        == '<doc xmlns:bbc="http://example.org/bbc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://example.org/bar" version="2.7182818284590451">\n\t<author>John Polk and John Palfrey</author>\n\t<dc:creator>John Polk</dc:creator>\n\t<dc:creator>John Palfrey</dc:creator>\n\t<bbc:show bbc:station="4">Buffy</bbc:show>\n</doc>'
+        d.__repr__(1, 1) == "<doc "
+        'xmlns="http://example.org/bar" '
+        'xmlns:dc="http://purl.org/dc/elements/1.1/" '
+        'xmlns:bbc="http://example.org/bbc" '
+        'version="2.7182818284590451">\n'
+        "\t<author>John Polk and John Palfrey</author>\n\t<dc:creator>John Polk</dc:creator>\n"
+        '\t<dc:creator>John Palfrey</dc:creator>\n\t<bbc:show bbc:station="4">Buffy</bbc:show>\n</doc>'
     )
 
     assert repr(parse("<doc xml:lang='en' />")) == '<doc xml:lang="en"></doc>'

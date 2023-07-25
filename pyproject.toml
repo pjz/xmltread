@@ -33,6 +33,7 @@ Repository = "http://github.com/pjz/xmltread.git"
 dev = [
     "pytest",
     "pytest-mypy",
+    "black",
     "build",
     "twine",
 ]
