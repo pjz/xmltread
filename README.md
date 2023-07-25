@@ -1,6 +1,6 @@
 # xmltread
 
-## TODO: add build status badge
+![Tests](https://github.com/pjz/xmltread/actions/workflows/test.yml/badge.svg)
 
 [xmltramp](http://www.aaronsw.com/2002/xmltramp/) was originally created by Aaron Swartz
 for simple-yet-powerful parsing of RSS and other xml files.

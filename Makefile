@@ -35,6 +35,7 @@ $(DEV_ENV): $(DEV_REQS)
 	pip install pip-tools
 	pip-sync $(DEV_REQS)
 	pip install -e .[all]
+	touch $(DEV_REQS)
 
 .PHONY: dev
 dev: $(DEV_ENV)
@@ -42,7 +43,7 @@ dev: $(DEV_ENV)
 wheel:
 	python -m build
 
-raw-mypy raw-pylint raw-test raw-coverage: export PYTHONWARNINGS=ignore,default:::$(PROJ)
+mypy pylint test coverage: export PYTHONWARNINGS=ignore,default:::$(PROJ)
 
 CODECOV_OUTPUT=--cov-report term
 
