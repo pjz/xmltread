@@ -265,15 +265,24 @@ class Namespace:
         return (self.__uri, n)
 
 
+def load_fileobj(fileobj):
+    from .seeder import seed
+
+    return seed(fileobj)
+
+
+def load_url(url):
+    from urllib.request import urlopen
+
+    return load_fileobj(urlopen(url))
+
+
+def load_file(filename: str):
+    with open(filename) as fileobj:
+        return load_fileobj(fileobj)
+
+
 def parse(text):
     from io import StringIO
-    from .seeder import seed
 
-    return seed(StringIO(text))
-
-
-def load(url):
-    from urllib.request import urlopen
-    from .seeder import seed
-
-    return seed(urlopen(url))
+    return load_fileobj(StringIO(text))
