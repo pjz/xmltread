@@ -40,7 +40,11 @@ $(DEV_ENV): $(DEV_REQS)
 .PHONY: dev
 dev: $(DEV_ENV)
 
-wheel:
+WHEEL=./dist/$(PROJ)-$(VERSION)-py3-none-any.whl
+
+.PHONY: wheel
+wheel: $(WHEEL)
+$(WHEEL):
 	python -m build
 
 mypy pylint test coverage: export PYTHONWARNINGS=ignore,default:::$(PROJ)
@@ -93,7 +97,7 @@ not-dirty:
 SIGN=
 
 .PHONY: git-release
-git-release: wheel not-dirty
+git-release: $(WHEEL) not-dirty
 	@if [ `git rev-parse --abbrev-ref HEAD` != main ]; then \
 		echo "You can only do a release from the main branch.";\
 		exit 1;\
@@ -112,8 +116,7 @@ git-release: wheel not-dirty
 	@echo "Released! Note you're now on the 'main' branch."
 
 .PHONY: pypi-release
-pypi-release: wheel
-	python -m build
+pypi-release: $(WHEEL)
 	twine upload dist/$(PROJ)-$(VERSION)*
 
 .PHONY: docs
