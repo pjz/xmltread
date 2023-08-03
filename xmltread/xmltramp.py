@@ -235,14 +235,18 @@ class Element:
                 break
 
     def __call__(self, *_pos, **_set):
+        # set kw params
         if _set:
             for k in _set.keys():
                 self._attrs[k] = _set[k]
+        # set k, v pairs of positional params
         if len(_pos) > 1:
             for i in range(0, len(_pos), 2):
                 self._attrs[_pos[i]] = _pos[i + 1]
+        # get the attr specified by the param
         if len(_pos) == 1:
             return self._attrs[_pos[0]]
+        # get all attrs
         if len(_pos) == 0:
             return self._attrs
 
