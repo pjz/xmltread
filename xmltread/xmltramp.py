@@ -52,13 +52,9 @@ class Element:
         if islst(name) and name[0] is None:
             name = name[1]
         if attrs:
-            na = {}
-            for k in attrs:
-                if islst(k) and k[0] is None:
-                    na[k[1]] = attrs[k]
-                else:
-                    na[k] = attrs[k]
-            attrs = na
+            attrs = {
+                (k[1] if islst(k) and k[0] is None else k): v for k, v in attrs.items()
+            }
 
         self._name = name
         self._attrs = attrs or {}
