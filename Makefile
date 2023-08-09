@@ -19,23 +19,30 @@ default::
 
 PYTEST_ARGS = $(PYTEST_EXTRA)
 
-DEV_REQS=dev-requirements.txt
-DEV_ENV=$(VIRTUAL_ENV)/bin/pytest
+INST_REQS=requirements.txt
+DEV_REQS=requirements-dev.txt
+DEV_ENV=.make.dev-env-sync
+PIP_TOOLS=$(VIRTUAL_ENV)/bin/pip-compile
 
 PIP_VENDORED_FLAGS=$(if $(PIP_VENDORED_DIR),-f $(PIP_VENDORED_DIR),)
 
-$(DEV_REQS): pyproject.toml
-	pip-compile -q --resolver=backtracking --extra=dev --output-file=$@ $<
-
-$(DEV_ENV): $(DEV_REQS)
+$(PIP_TOOLS):
 	@if [ -z "$$VIRTUAL_ENV" ] ; then \
 	    echo "You should be in a virtualenv or other isolated environment before running this."; \
 		exit 1; \
 	fi
 	pip install pip-tools
-	pip-sync $(DEV_REQS)
-	pip install -e .[dev]
-	touch $(DEV_REQS)
+
+$(DEV_REQS): pyproject.toml $(PIP_TOOLS)
+	pip-compile -q --resolver=backtracking --extra=dev --output-file=$@ $<
+
+$(INST_REQS): pyproject.toml $(PIP_TOOLS)
+	pip-compile -q --resolver=backtracking  --output-file=$@ $<
+
+$(DEV_ENV): $(DEV_REQS) $(INST_REQS) $(PIP_TOOLS)
+	pip-sync $(DEV_REQS) $(INST_REQS)
+	pip install -e .
+	touch $(DEV_ENV)
 
 .PHONY: dev
 dev: $(DEV_ENV)
